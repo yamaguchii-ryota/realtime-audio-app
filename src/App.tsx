@@ -13,7 +13,14 @@ const App: React.FC = () => {
       <div className="mt-8">
         <ToggleButton onToggle={setIsMicOn} />
       </div>
-      <div className="mt-8">
+      <div className="relative mt-8">
+        {isMicOn ? (
+          ""
+        ) : (
+          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            マイクをオフです
+          </h1>
+        )}
         <AudioVisualizer isMicOn={isMicOn} />
       </div>
     </div>

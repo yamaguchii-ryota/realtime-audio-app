@@ -7,21 +7,28 @@ interface AudioVisualizerProps {
 const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ isMicOn }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+
     if (!isMicOn) {
       if (audioContextRef.current) {
         audioContextRef.current.close();
         audioContextRef.current = null;
       }
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      if (context && canvas) {
+        context.fillStyle = "#f3f4f6";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
       return;
     }
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const context = canvas.getContext("2d");
-    if (!context) return;
+    if (!canvas || !context) return;
 
     let analyser: AnalyserNode;
     let dataArray: Uint8Array;
@@ -67,12 +74,12 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ isMicOn }) => {
         }
 
         if (dataArray.every((value) => value === 0)) {
-          context.fillStyle = "white";
+          context.fillStyle = "#f3f4f6";
           context.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         if (isMicOn) {
-          requestAnimationFrame(draw);
+          animationRef.current = requestAnimationFrame(draw);
         }
       };
 
