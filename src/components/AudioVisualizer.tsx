@@ -79,7 +79,7 @@ const AudioVisualizer: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      width="800"
+      width="400"
       height="400"
       className="border-2 border-black"
     />
