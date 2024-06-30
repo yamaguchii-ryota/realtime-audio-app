@@ -1,23 +1,36 @@
 import React, { useEffect, useRef } from "react";
 
-const AudioVisualizer: React.FC = () => {
+interface AudioVisualizerProps {
+  isMicOn: boolean;
+}
+
+const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ isMicOn }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
+    if (!isMicOn) {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    let audioContext: AudioContext;
     let analyser: AnalyserNode;
     let dataArray: Uint8Array;
     let bufferLength: number;
 
     const handleSuccess = (stream: MediaStream) => {
-      audioContext = new (window.AudioContext ||
+      const audioContext = new (window.AudioContext ||
         (window as any).webkitAudioContext)();
+      audioContextRef.current = audioContext;
       analyser = audioContext.createAnalyser();
       const source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
@@ -58,7 +71,9 @@ const AudioVisualizer: React.FC = () => {
           context.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        requestAnimationFrame(draw);
+        if (isMicOn) {
+          requestAnimationFrame(draw);
+        }
       };
 
       draw();
@@ -70,11 +85,11 @@ const AudioVisualizer: React.FC = () => {
       .catch((err) => console.error("Error accessing audio stream:", err));
 
     return () => {
-      if (audioContext) {
-        audioContext.close();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
       }
     };
-  }, []);
+  }, [isMicOn]);
 
   return (
     <canvas
